@@ -1,3 +1,14 @@
+drop table public.staging_prices;
+CREATE TABLE if not exists public.staging_prices (
+timestamp VARCHAR(100) NOT NULL, 
+symbol VARCHAR(100), 
+"open" NUMERIC,
+high NUMERIC,
+low NUMERIC,
+close NUMERIC,
+volume NUMERIC
+);
+
 drop table public.staging_blocks;
 CREATE TABLE if not exists public.staging_blocks (
 timestamp	VARCHAR(400) NOT NULL,
@@ -42,7 +53,7 @@ block_hash	VARCHAR(8000) NOT NULL
 );
 
 
-
+drop table block_transaction;
 CREATE TABLE if not exists public.block_transaction (
 transaction_hash	VARCHAR(512) NOT NULL,
 transaction_index	INTEGER NOT NULL,
@@ -50,6 +61,8 @@ sender_address	VARCHAR(512)  NOT NULL,
 receiver_address	VARCHAR(512),
 miner_address	VARCHAR(512),
 wei_value_x9 NUMERIC,
+price NUMERIC,
+price_timestamp	TIMESTAMP,
 block_timestamp	TIMESTAMP  NOT NULL,
 block_number	BIGINT  NOT NULL,
 block_hash	VARCHAR(512)  NOT NULL
@@ -88,3 +101,12 @@ transaction_count	NUMERIC,
 CONSTRAINT block_hash_pkey PRIMARY KEY (hash)
 );
 
+drop table price;
+CREATE TABLE if not exists public.price (
+timestamp	TIMESTAMP NOT NULL,
+"open" NUMERIC,
+high NUMERIC,
+low NUMERIC,
+close NUMERIC,
+volume NUMERIC
+);

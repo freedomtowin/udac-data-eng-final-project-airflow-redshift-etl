@@ -1,7 +1,7 @@
 class SqlQueries:
 
     block_transaction_table_insert = ("""
-        insert into block_transaction (transaction_hash, transaction_index, sender_address,receiver_address, miner_address, wei_value_x9,
+        insert into block_transaction (transaction_hash, transaction_index, sender_address,receiver_address, miner_address, wei_value_x9, price, price_timestamp,
         block_timestamp, block_number, block_hash)
         SELECT
             t.hash,
@@ -12,6 +12,8 @@ class SqlQueries:
             case when length(t.value)<=9 and length(value)>0 then cast(t.value as NUMERIC)/1000000
             when length(t.value)>9 then cast(SUBSTRING(t.value, 0, length(t.value)-8)/10 as NUMERIC) 
             else null end wei_value_x9,
+            p.price,
+            TO_TIMESTAMP(p.timestamp, 'YYYY-MM-DD HH24:MI:ss') price_timestamp,
             TO_TIMESTAMP(t.block_timestamp, 'YYYY-MM-DD HH24:MI:ss+00:00') block_timestamp,
             t.block_number,
             t.block_hash
@@ -34,6 +36,8 @@ class SqlQueries:
                 ON t.block_timestamp = b.timestamp
                 AND t.block_number = b.number
                 AND t.block_hash = b.hash
+        LEFT JOIN (select "timestamp", close price from staging_prices) p
+                ON TO_CHAR(TO_TIMESTAMP(t.block_timestamp, 'YYYY-MM-DD HH24:MI:ss+00:00'),'YYYY-MM-DD HH24')=TO_CHAR(TO_TIMESTAMP(p.timestamp, 'YYYY-MM-DD HH24:MI:ss'),'YYYY-MM-DD HH24')
     """)
 
     transaction_table_insert = ("""
@@ -87,10 +91,11 @@ class SqlQueries:
         from staging_blocks;
     """)
 
-    time_table_insert = ("""
-        SELECT start_time, extract(hour from start_time), extract(day from start_time), extract(week from start_time), 
-               extract(month from start_time), extract(year from start_time), extract(dayofweek from start_time)
-        FROM songplays
+    price_table_insert = ("""
+        insert into price ("timestamp","open",high,low,close, volume)
+        SELECT TO_TIMESTAMP("timestamp", 'YYYY-MM-DD HH24:MI:ss') "timestamp",
+        "open", high, low,close, volume
+        FROM staging_prices
     """)
     
     
